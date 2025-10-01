@@ -1,6 +1,6 @@
 import pytest
 
-from project.matrixes import matrix_addition, matrix_multiplication, matrix_transpose
+from project.matrices import matrix_addition, matrix_multiplication, matrix_transpose
 
 
 class TestMatrixes:
