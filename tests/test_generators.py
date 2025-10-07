@@ -9,7 +9,61 @@ from project.generators import (
     to_list,
     to_set,
     count_gen,
+    pipeline,
 )
+
+
+class TestPipelineFunction:
+    """Tests for pipeline function that chains operations."""
+
+    def test_pipeline_basic(self, numbers):
+        """Test basic pipeline with map and filter."""
+        result = to_list(
+            pipeline(
+                numbers,
+                lambda s: map_gen(lambda x: x * 2, s),
+                lambda s: filter_gen(lambda x: x > 5, s),
+            )
+        )
+        assert result == [6, 8, 10]
+
+    def test_pipeline_multiple_operations(self):
+        """Test pipeline with multiple sequential operations."""
+        result = to_list(
+            pipeline(
+                data_generator(0, 10),
+                lambda s: filter_gen(lambda x: x % 2 == 0, s),
+                lambda s: map_gen(lambda x: x**2, s),
+                lambda s: filter_gen(lambda x: x < 50, s),
+            )
+        )
+        assert result == [0, 4, 16, 36]
+
+    @pytest.mark.parametrize(
+        "operations, expected",
+        [
+            ([lambda s: map_gen(lambda x: x + 1, s)], [2, 3, 4, 5, 6]),
+            (
+                [
+                    lambda s: filter_gen(lambda x: x > 2, s),
+                    lambda s: map_gen(lambda x: x * 10, s),
+                ],
+                [30, 40, 50],
+            ),
+            (
+                [
+                    lambda s: map_gen(lambda x: x * 2, s),
+                    lambda s: filter_gen(lambda x: x % 4 == 0, s),
+                    lambda s: map_gen(lambda x: x // 2, s),
+                ],
+                [2, 4],
+            ),
+        ],
+    )
+    def test_pipeline_parametrize(self, numbers, operations, expected):
+        """Parametrized tests for different pipeline configurations."""
+        result = to_list(pipeline(numbers, *operations))
+        assert result == expected
 
 
 @pytest.fixture
