@@ -19,6 +19,29 @@ def data_generator(start: int, end: int, step: int = 1) -> Iterable[int]:
         current += step
 
 
+def pipeline(source: Iterable, *operations) -> Iterable:
+    """Apply sequence of operations to data source sequentially.
+
+    Args:
+        source (Iterable): Input data source.
+        *operations: Variable number of operations to apply.
+
+    Returns:
+        Iterable: Result after applying all operations.
+
+    Example:
+        result = pipeline(
+            [1, 2, 3, 4, 5],
+            lambda s: map_gen(lambda x: x * 2, s),
+            lambda s: filter_gen(lambda x: x > 5, s)
+        )
+    """
+    result = source
+    for operation in operations:
+        result = operation(result)
+    return result
+
+
 def map_gen(func: Callable, source: Iterable) -> Iterable:
     """Apply function to each element in the stream.
 
