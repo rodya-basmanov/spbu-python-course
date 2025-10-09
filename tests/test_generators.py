@@ -1,71 +1,9 @@
 import pytest
-from project.generators import (
-    data_generator,
-    map_gen,
-    filter_gen,
-    zip_gen,
-    apply_gen,
-    reduce_gen,
-    to_list,
-    to_set,
-    count_gen,
-    pipeline,
-)
+
+from project.Task2.generators import data_generator, pipeline, apply_custom_operation
 
 
-class TestPipelineFunction:
-    """Tests for pipeline function that chains operations."""
-
-    def test_pipeline_basic(self, numbers):
-        """Test basic pipeline with map and filter."""
-        result = to_list(
-            pipeline(
-                numbers,
-                lambda s: map_gen(lambda x: x * 2, s),
-                lambda s: filter_gen(lambda x: x > 5, s),
-            )
-        )
-        assert result == [6, 8, 10]
-
-    def test_pipeline_multiple_operations(self):
-        """Test pipeline with multiple sequential operations."""
-        result = to_list(
-            pipeline(
-                data_generator(0, 10),
-                lambda s: filter_gen(lambda x: x % 2 == 0, s),
-                lambda s: map_gen(lambda x: x**2, s),
-                lambda s: filter_gen(lambda x: x < 50, s),
-            )
-        )
-        assert result == [0, 4, 16, 36]
-
-    @pytest.mark.parametrize(
-        "operations, expected",
-        [
-            ([lambda s: map_gen(lambda x: x + 1, s)], [2, 3, 4, 5, 6]),
-            (
-                [
-                    lambda s: filter_gen(lambda x: x > 2, s),
-                    lambda s: map_gen(lambda x: x * 10, s),
-                ],
-                [30, 40, 50],
-            ),
-            (
-                [
-                    lambda s: map_gen(lambda x: x * 2, s),
-                    lambda s: filter_gen(lambda x: x % 4 == 0, s),
-                    lambda s: map_gen(lambda x: x // 2, s),
-                ],
-                [2, 4],
-            ),
-        ],
-    )
-    def test_pipeline_parametrize(self, numbers, operations, expected):
-        """Parametrized tests for different pipeline configurations."""
-        result = to_list(pipeline(numbers, *operations))
-        assert result == expected
-
-
+# Fixtures placed at the top as requested
 @pytest.fixture
 def numbers():
     return [1, 2, 3, 4, 5]
@@ -76,161 +14,149 @@ def strings():
     return ["apple", "banana", "cherry"]
 
 
-class TestGenerator:
-    def test_generator_basic(self):
-        result = list(data_generator(0, 5))
-        assert result == [0, 1, 2, 3, 4]
-
-    def test_generator_with_step(self):
-        result = list(data_generator(0, 10, 2))
-        assert result == [0, 2, 4, 6, 8]
+@pytest.fixture
+def mixed_data():
+    return [1, "hello", 3.14, True]
 
 
-class TestMap:
-    @pytest.mark.parametrize(
-        "input_list, func, expected",
-        [
-            ([1, 2, 3], lambda x: x * 2, [2, 4, 6]),
-            ([1, 2, 3], lambda x: x + 10, [11, 12, 13]),
-            ([5], lambda x: x**2, [25]),
-        ],
-    )
-    def test_map_parametrize(self, input_list, func, expected):
-        result = to_list(map_gen(func, input_list))
-        assert result == expected
+class TestPipelineFunction:
+    """Tests for pipeline function that chains operations."""
 
-    def test_map_with_fixture(self, numbers):
-        result = to_list(map_gen(lambda x: x * 2, numbers))
-        assert result == [2, 4, 6, 8, 10]
-
-    def test_map_string(self, strings):
-        result = to_list(map_gen(lambda s: s.upper(), strings))
-        assert result == ["APPLE", "BANANA", "CHERRY"]
-
-
-class TestFilter:
-    @pytest.mark.parametrize(
-        "input_list, predicate, expected",
-        [
-            ([1, 2, 3, 4, 5], lambda x: x > 3, [4, 5]),
-            ([1, 2, 3, 4, 5], lambda x: x % 2 == 0, [2, 4]),
-            ([1, 2, 3], lambda x: x < 0, []),
-        ],
-    )
-    def test_filter_parametrize(self, input_list, predicate, expected):
-        result = to_list(filter_gen(predicate, input_list))
-        assert result == expected
-
-    def test_filter_with_fixture(self, numbers):
-        result = to_list(filter_gen(lambda x: x > 2, numbers))
-        assert result == [3, 4, 5]
-
-
-class TestCombinations:
-    def test_map_filter(self, numbers):
-        result = to_list(filter_gen(lambda x: x > 5, map_gen(lambda x: x * 2, numbers)))
+    def test_pipeline_basic(self, numbers):
+        """Test basic pipeline with built-in map and filter."""
+        result = list(
+            pipeline(
+                numbers,
+                lambda x: map(lambda y: y * 2, x),
+                lambda x: filter(lambda y: y > 5, x),
+            )
+        )
         assert result == [6, 8, 10]
 
-    def test_filter_map(self, numbers):
-        result = to_list(
-            map_gen(lambda x: x**2, filter_gen(lambda x: x > 2, numbers))
-        )
-        assert result == [9, 16, 25]
-
-    def test_multiple_operations(self, numbers):
-        result = to_list(
-            map_gen(
-                lambda x: x + 1,
-                filter_gen(lambda x: x > 2, map_gen(lambda x: x * 2, numbers)),
+    def test_pipeline_multiple_operations(self):
+        """Test pipeline with multiple sequential operations."""
+        result = list(
+            pipeline(
+                data_generator(0, 10),
+                lambda x: filter(lambda y: y % 2 == 0, x),
+                lambda x: map(lambda y: y**2, x),
+                lambda x: filter(lambda y: y < 50, x),
             )
         )
-        assert result == [5, 7, 9, 11]
+        assert result == [0, 4, 16, 36]
 
-
-class TestZip:
-    def test_zip_basic(self, numbers):
-        result = to_list(zip_gen(numbers, [10, 20, 30, 40, 50]))
-        assert result == [(1, 10), (2, 20), (3, 30), (4, 40), (5, 50)]
-
-    def test_zip_different_lengths(self, numbers):
-        result = to_list(zip_gen(numbers, [10, 20]))
-        assert result == [(1, 10), (2, 20)]
-
-
-class TestReduce:
     @pytest.mark.parametrize(
-        "func, initial, expected",
+        "operations, expected",
         [
-            (lambda x, y: x + y, None, 15),
-            (lambda x, y: x * y, None, 120),
-            (lambda x, y: x + y, 10, 25),
+            ([lambda s: map(lambda x: x + 1, s)], [2, 3, 4, 5, 6]),
+            (
+                [
+                    lambda s: filter(lambda x: x > 2, s),
+                    lambda s: map(lambda x: x * 10, s),
+                ],
+                [30, 40, 50],
+            ),
+            (
+                [
+                    lambda s: map(lambda x: x * 2, s),
+                    lambda s: filter(lambda x: x % 4 == 0, s),
+                    lambda s: map(lambda x: x // 2, s),
+                ],
+                [2, 4],
+            ),
         ],
     )
-    def test_reduce_parametrize(self, numbers, func, initial, expected):
-        result = reduce_gen(func, numbers, initial)
+    def test_pipeline_parametrize(self, numbers, operations, expected):
+        """Parametrized tests for different pipeline configurations."""
+        result = list(pipeline(numbers, *operations))
         assert result == expected
 
-
-class TestCustomFunctions:
-    def test_apply_custom(self, numbers):
-        def double_gen(iterable):
-            for item in iterable:
-                yield item * 2
-
-        result = to_list(apply_gen(double_gen, numbers))
-        assert result == [2, 4, 6, 8, 10]
-
-    def test_apply_reversed(self, numbers):
-        result = to_list(apply_gen(reversed, numbers))
-        assert result == [5, 4, 3, 2, 1]
-
-
-class TestAggregators:
-    def test_to_list(self, numbers):
-        result = to_list(numbers)
-        assert result == [1, 2, 3, 4, 5]
-
-    def test_to_set(self):
-        result = to_set([1, 2, 2, 3, 3])
-        assert result == {1, 2, 3}
-
-    def test_count(self, numbers):
-        result = count_gen(numbers)
-        assert result == 5
-
-
-# Тесты ленивых вычислений
-class TestLazy:
-    def test_lazy_evaluation(self):
-        executed = []
-
-        def track(x):
-            executed.append(x)
-            return x * 2
-
-        # Создаём генератор без терминальной операции
-        gen = map_gen(track, [1, 2, 3])
-        assert len(executed) == 0  # Ещё не выполнено
-
-        # Вызываем терминальную операцию
-        result = to_list(gen)
-        assert len(executed) == 3
-        assert result == [2, 4, 6]
-
-    def test_chaining_generators(self):
-        gen = data_generator(0, 10)
-        gen = filter_gen(lambda x: x % 2 == 0, gen)
-        gen = map_gen(lambda x: x**2, gen)
-
-        result = to_list(gen)
-        assert result == [0, 4, 16, 36, 64]
-
-
-class TestExamples:
-    def test_example_pipeline(self):
-        result = to_list(
-            map_gen(
-                lambda x: x * 3, filter_gen(lambda x: x % 2 == 0, data_generator(0, 10))
+    def test_pipeline_with_zip(self):
+        """Test pipeline with zip operation."""
+        result = list(
+            pipeline(
+                [1, 2, 3],
+                lambda x: zip(x, [10, 20, 30]),
+                lambda x: map(lambda pair: pair[0] + pair[1], x),
             )
         )
-        assert result == [0, 6, 12, 18, 24]
+        assert result == [11, 22, 33]
+
+
+class TestDataGenerator:
+    """Tests for data generator function."""
+
+    @pytest.mark.parametrize(
+        "start,end,step,expected",
+        [
+            (0, 5, 1, [0, 1, 2, 3, 4]),
+            (0, 10, 2, [0, 2, 4, 6, 8]),
+            (5, 8, 1, [5, 6, 7]),
+            (-2, 3, 1, [-2, -1, 0, 1, 2]),
+            (10, 5, -1, []),  # empty range
+        ],
+    )
+    def test_data_generator_parametrized(self, start, end, step, expected):
+        """Parametrized tests for data generator with different parameters."""
+        result = list(data_generator(start, end, step))
+        assert result == expected
+
+    def test_data_generator_in_pipeline(self):
+        """Test data generator used in pipeline."""
+        result = list(
+            pipeline(
+                data_generator(1, 6),
+                lambda x: map(lambda y: y * 3, x),
+                lambda x: filter(lambda y: y % 2 == 0, x),
+            )
+        )
+        assert result == [6, 12]
+
+
+class TestApplyCustomOperation:
+    """Tests for apply_custom_operation function."""
+
+    @pytest.fixture
+    def custom_doubler(self):
+        """Fixture providing custom doubling function."""
+        return lambda x: x * 2
+
+    @pytest.fixture
+    def custom_string_formatter(self):
+        """Fixture providing custom string formatting function."""
+        return lambda s: f"processed_{s}"
+
+    @pytest.fixture
+    def custom_type_converter(self):
+        """Fixture providing custom type conversion function."""
+        return lambda x: str(x) if isinstance(x, int) else x
+
+    def test_apply_custom_operation_basic(self, numbers, custom_doubler):
+        """Test basic usage of apply_custom_operation."""
+        result = list(apply_custom_operation(custom_doubler, numbers))
+        assert result == [2, 4, 6, 8, 10]
+
+    def test_apply_custom_operation_strings(self, strings, custom_string_formatter):
+        """Test apply_custom_operation with string data."""
+        result = list(apply_custom_operation(custom_string_formatter, strings))
+        assert result == ["processed_apple", "processed_banana", "processed_cherry"]
+
+    def test_apply_custom_operation_mixed_data(self, mixed_data, custom_type_converter):
+        """Test apply_custom_operation with mixed data types."""
+        result = list(apply_custom_operation(custom_type_converter, mixed_data))
+        assert result == ["1", "hello", 3.14, "True"]
+
+    @pytest.mark.parametrize(
+        "input_data, custom_func, expected",
+        [
+            ([1, 2, 3], lambda x: x**2, [1, 4, 9]),
+            (["a", "b", "c"], lambda s: s.upper(), ["A", "B", "C"]),
+            ([1.5, 2.5, 3.5], lambda x: int(x), [1, 2, 3]),
+        ],
+    )
+    def test_apply_custom_operation_parametrized(
+        self, input_data, custom_func, expected
+    ):
+        """Parametrized tests for apply_custom_operation."""
+        result = list(apply_custom_operation(custom_func, input_data))
+        assert result == expected
