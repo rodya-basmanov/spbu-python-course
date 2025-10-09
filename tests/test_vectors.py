@@ -1,7 +1,7 @@
 import pytest
 import math
 
-from project.vectors import vector_length, scalar_product, angle_vectors
+from project.Task1.vectors import vector_length, scalar_product, angle_vectors
 
 
 class TestVectors:
