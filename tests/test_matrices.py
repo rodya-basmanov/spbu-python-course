@@ -5,6 +5,7 @@ from project.Task1.matrices import (
     matrix_multiplication,
     matrix_transpose,
 )
+from project.Task1.matrices import matrix_addition, matrix_multiplication, matrix_transpose
 
 
 class TestMatrixes:
