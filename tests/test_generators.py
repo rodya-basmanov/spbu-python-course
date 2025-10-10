@@ -139,13 +139,11 @@ class TestApplyCustomOperation:
     def test_apply_custom_operation_strings(self, strings, custom_string_formatter):
         """Test apply_custom_operation with string data."""
         result = list(apply_custom_operation(custom_string_formatter, strings))
-        assert result == ["processed_apple",
-                          "processed_banana", "processed_cherry"]
+        assert result == ["processed_apple", "processed_banana", "processed_cherry"]
 
     def test_apply_custom_operation_mixed_data(self, mixed_data, custom_type_converter):
         """Test apply_custom_operation with mixed data types."""
-        result = list(apply_custom_operation(
-            custom_type_converter, mixed_data))
+        result = list(apply_custom_operation(custom_type_converter, mixed_data))
         assert result == ["1", "hello", 3.14, "True"]
 
     @pytest.mark.parametrize(
