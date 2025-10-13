@@ -55,8 +55,9 @@ def uncurry_explicit(curry_func: Callable, arity: int) -> Callable:
         An uncurried version of the input function. If arity is 0, returns
         a function that takes no arguments. Otherwise, returns a function
         that takes all arguments at once.
-    Raises: ValueError: If arity is negative or the number of arguments passed
-    doesn't match the specified arity
+    Raises:
+        ValueError: If arity is negative or the number of arguments passed
+        doesn't match the specified arity
     """
     if arity < 0:
         raise ValueError("Negative arity is not possible")
@@ -93,6 +94,20 @@ class Evaluated:
 
 
 def smart_args(func):
+    """
+    Decorator that processes default arguments marked with Evaluated and Isolated.
+    For Evaluated: calls the provided function to get the default value at call time
+    For Isolated: makes a deep copy of the provided argument value
+    Only supports keyword-only arguments. All parameters must be keyword-only.
+    Args:
+        func: The function to be decorated
+    Returns:
+        A decorated version of the input function with smart argument processing
+    Raises:
+        AssertionError: If used with non-keyword-only arguments or if both
+        Evaluated and Isolated are used on the same parameter
+    """
+
     sig = inspect.signature(func)
 
     for name, param in sig.parameters.items():
