@@ -46,6 +46,35 @@ class TestCurryExplicit:
         with pytest.raises(ValueError):
             curried(1, 2, 3)
 
+    def test_curry_only_one_arg_at_a_time(self, adder):
+        curried = curry_explicit(adder, 2)
+        with pytest.raises(ValueError):
+            curried(1, 2)
+
+    def test_curry_builtin_function(self):
+        curried_max = curry_explicit(max, 2)
+        assert curried_max(5)(3) == 5
+        assert curried_max(2)(8) == 8
+
+    def test_curry_builtin_pow(self):
+        curried_pow = curry_explicit(pow, 2)
+        assert curried_pow(2)(10) == 1024
+        assert curried_pow(3)(3) == 27
+
+    def test_curry_unlimited_arity_function(self):
+        def var_args(*args):
+            return sum(args)
+
+        curried = curry_explicit(var_args, 4)
+        assert curried(1)(2)(3)(4) == 10
+
+    def test_curry_string_concat(self):
+        def concat(a, b, c):
+            return a + b + c
+
+        curried = curry_explicit(concat, 3)
+        assert curried("Hello")(" ")("World") == "Hello World"
+
 
 class TestUncurryExplicit:
     def test_uncurry_basic(self, adder):
@@ -73,6 +102,22 @@ class TestUncurryExplicit:
         uncurried = uncurry_explicit(curried, 2)
         with pytest.raises(ValueError):
             uncurried(1)
+
+    def test_uncurry_builtin_function(self):
+        curried_min = curry_explicit(min, 2)
+        uncurried_min = uncurry_explicit(curried_min, 2)
+        assert uncurried_min(7, 3) == 3
+
+    def test_uncurry_var_args_function(self):
+        def multiply_all(*args):
+            result = 1
+            for arg in args:
+                result *= arg
+            return result
+
+        curried = curry_explicit(multiply_all, 5)
+        uncurried = uncurry_explicit(curried, 5)
+        assert uncurried(1, 2, 3, 4, 5) == 120
 
 
 class TestSmartArgsIsolated:
