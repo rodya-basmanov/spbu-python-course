@@ -51,6 +51,21 @@ class TestCurryExplicit:
         with pytest.raises(ValueError):
             curried(1, 2)
 
+    def test_curry_three_args_all_at_once(self, multiplier):
+        curried = curry_explicit(multiplier, 3)
+        with pytest.raises(ValueError):
+            curried(1, 2, 3)
+
+    def test_curry_three_args_first_then_two(self, multiplier):
+        curried = curry_explicit(multiplier, 3)
+        with pytest.raises(ValueError):
+            curried(1)(2, 3)
+
+    def test_curry_three_args_two_then_one(self, multiplier):
+        curried = curry_explicit(multiplier, 3)
+        with pytest.raises(ValueError):
+            curried(1, 2)(3)
+
     def test_curry_builtin_function(self):
         curried_max = curry_explicit(max, 2)
         assert curried_max(5)(3) == 5
@@ -191,13 +206,13 @@ class TestSmartArgsValidation:
         with pytest.raises(AssertionError):
             smart_args(bad)
 
-    def test_mix_isolated_and_evaluated_not_allowed(self):
-        @smart_args
-        def f(*, x=Isolated()):
-            return x
+    def test_isolated_wrapped_in_evaluated_not_allowed(self):
+        with pytest.raises(AssertionError):
+            Evaluated(Isolated())
 
-        param = Isolated()
-        assert not isinstance(param, Evaluated)
+    def test_evaluated_wrapped_in_isolated_not_allowed(self):
+        with pytest.raises(TypeError):
+            Isolated(Evaluated(lambda: 10))
 
     def test_evaluated_must_have_callable(self):
         with pytest.raises(AssertionError):
