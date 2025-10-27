@@ -1,0 +1,32 @@
+import sources directory
+======================================================================
+BLACKJACK GAME - Strategy Comparison
+======================================================================
+
+Comparing 5 different bot strategies over 100 rounds:
+
+  - Conservative         (Conservative)
+  - Aggressive           (Aggressive)
+  - Dealer-like          (Dealer)
+  - Basic                (Basic)
+  - Cautious-Aggressive  (Cautious-Aggressive)
+
+Playing 100 rounds... (output suppressed for brevity)
+
+======================================================================
+FINAL RESULTS
+======================================================================
+
+Strategy                  Wins   Losses   Draws   BJs   Win %
+----------------------------------------------------------------------
+Dealer-like               40     49       11      3     40.00   %
+Cautious-Aggressive       39     53       8       4     39.00   %
+Basic                     36     57       7       3     36.00   %
+Conservative              34     60       6       9     34.00   %
+Aggressive                32     54       14      6     32.00   %
+
+======================================================================
+Analysis:
+======================================================================
+Best performing strategy: Dealer-like with 40.00% win rate
+Most blackjacks: Conservative with 9 blackjacks
