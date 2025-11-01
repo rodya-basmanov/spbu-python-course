@@ -1,11 +1,8 @@
-from enum import Enum
 from random import shuffle
-from typing import List
+from enum import Enum
 
 
 class Suit(Enum):
-    """Card suit enumeration."""
-
     HEARTS = "♥"
     DIAMONDS = "♦"
     CLUBS = "♣"
@@ -13,8 +10,6 @@ class Suit(Enum):
 
 
 class Rank(Enum):
-    """Card rank enumeration."""
-
     TWO = ("2", 2)
     THREE = ("3", 3)
     FOUR = ("4", 4)
@@ -29,17 +24,23 @@ class Rank(Enum):
     KING = ("K", 10)
     ACE = ("A", 11)
 
-    def __init__(self, symbol: str, card_value: int):
-        self.symbol = symbol
-        self.card_value = card_value
+    def __init__(self, symbol, value):
+        self._symbol = symbol
+        self._value = value
+
+    @property
+    def symbol(self):
+        return self._symbol
+
+    @property
+    def value(self):
+        return self._value
 
 
 class Card:
-    """Represents a single playing card."""
-
     def __init__(self, rank: Rank, suit: Suit):
         """
-        Initialize a card.
+        Create a card.
 
         Args:
             rank: Card rank
@@ -50,73 +51,34 @@ class Card:
 
     @property
     def value(self) -> int:
-        """Get the base value of the card."""
-        return self.rank.card_value
+        """Get card value."""
+        return self.rank.value
 
     def __str__(self) -> str:
-        """String representation of the card."""
         return f"{self.rank.symbol}{self.suit.value}"
-
-    def __repr__(self) -> str:
-        """Detailed representation of the card."""
-        return f"Card({self.rank.name}, {self.suit.name})"
-
-    def __eq__(self, other) -> bool:
-        """Check equality with another card."""
-        if not isinstance(other, Card):
-            return False
-        return self.rank == other.rank and self.suit == other.suit
 
 
 class Deck:
-    """Represents a deck of playing cards."""
-
-    def __init__(self, num_decks: int = 1):
-        """
-        Initialize a deck.
-
-        Args:
-            num_decks: Number of standard 52-card decks to use
-        """
-        self.num_decks = num_decks
-        self.cards: List[Card] = []
+    def __init__(self):
+        """Create and shuffle a new deck."""
+        self.cards = []
         self.reset()
 
-    def reset(self) -> None:
-        """Reset and shuffle the deck."""
+    def reset(self):
+        """Create new deck with all 52 cards and shuffle."""
         self.cards = []
-        for _ in range(self.num_decks):
-            for suit in Suit:
-                for rank in Rank:
-                    self.cards.append(Card(rank, suit))
-        self.shuffle()
-
-    def shuffle(self) -> None:
-        """Shuffle the deck."""
+        for suit in Suit:
+            for rank in Rank:
+                self.cards.append(Card(rank, suit))
         shuffle(self.cards)
 
-    def draw_card(self) -> Card:
+    def draw(self):
         """
         Draw a card from the deck.
 
         Returns:
-            The drawn card
-
-        Raises:
-            IndexError: If the deck is empty
+            Card from the deck
         """
-        if not self.cards:
-            raise IndexError("Cannot draw from empty deck")
+        if len(self.cards) < 10:
+            self.reset()
         return self.cards.pop()
-
-    def cards_remaining(self) -> int:
-        """Get the number of cards remaining in the deck."""
-        return len(self.cards)
-
-    def __len__(self) -> int:
-        """Get the number of cards in the deck."""
-        return len(self.cards)
-
-    def __str__(self) -> str:
-        """String representation of the deck."""
-        return f"Deck({self.cards_remaining()} cards remaining)"
