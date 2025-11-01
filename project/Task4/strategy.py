@@ -1,7 +1,10 @@
 class Strategy:
-    def should_hit(self) -> bool:
+    def should_hit(self, hand_value: int) -> bool:
         """
         Decide if should take another card.
+
+        Args:
+            hand_value: Current hand value
 
         Returns:
             True if should hit, False if should stand
