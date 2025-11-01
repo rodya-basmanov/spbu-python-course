@@ -9,7 +9,7 @@ class Strategy:
         Returns:
             True if should hit, False if should stand
         """
-        pass
+        raise NotImplementedError
 
     def get_name(self) -> str:
         """
@@ -18,7 +18,7 @@ class Strategy:
         Returns:
             Name of the strategy
         """
-        pass
+        raise NotImplementedError
 
 
 class ConservativeStrategy(Strategy):
