@@ -3,13 +3,11 @@ from project.Task4.card import Card, Rank
 
 
 class Hand:
-    """Represents a hand of cards in Blackjack."""
-
     def __init__(self):
-        """Initialize an empty hand."""
+        """Create an empty hand."""
         self.cards: List[Card] = []
 
-    def add_card(self, card: Card) -> None:
+    def add_card(self, card: Card):
         """
         Add a card to the hand.
 
@@ -18,14 +16,26 @@ class Hand:
         """
         self.cards.append(card)
 
-    def get_value(self) -> int:
+    def add(self, card: Card):
         """
-        Calculate the best value of the hand.
+        Add a card to the hand (alias).
 
-        Aces are counted as 11 or 1, whichever is better.
+        Args:
+            card: Card to add
+        """
+        self.add_card(card)
+
+    def clear(self):
+        """Remove all cards from the hand."""
+        self.cards = []
+
+    def get_value(self):
+        """
+        Calculate the value of the hand.
+        Aces are counted as 11 or 1 to avoid busting.
 
         Returns:
-            The best value of the hand
+            Total value of the hand
         """
         value = 0
         aces = 0
@@ -34,46 +44,30 @@ class Hand:
             value += card.value
             if card.rank == Rank.ACE:
                 aces += 1
-
         while value > 21 and aces > 0:
             value -= 10
             aces -= 1
 
         return value
 
-    def is_busted(self) -> bool:
-        """Check if the hand is busted (value > 21)."""
+    def is_busted(self):
+        """
+        Check if hand is busted (over 21).
+
+        Returns:
+            True if busted, False otherwise
+        """
         return self.get_value() > 21
 
     def is_blackjack(self) -> bool:
-        """Check if the hand is a natural blackjack (21 with 2 cards)."""
-        return len(self.cards) == 2 and self.get_value() == 21
-
-    def is_soft(self) -> bool:
         """
-        Check if the hand is soft (contains an ace counted as 11).
+        Check if hand is blackjack (21 with 2 cards).
 
         Returns:
-            True if the hand contains an ace counted as 11
+            True if blackjack, False otherwise
         """
-        value = sum(card.value for card in self.cards)
-        aces = sum(1 for card in self.cards if card.rank == Rank.ACE)
+        return len(self.cards) == 2 and self.get_value() == 21
 
-        return aces > 0 and value > 21 and not self.is_busted()
-
-    def clear(self) -> None:
-        """Clear all cards from the hand."""
-        self.cards = []
-
-    def __len__(self) -> int:
-        """Get the number of cards in the hand."""
-        return len(self.cards)
-
-    def __str__(self) -> str:
-        """String representation of the hand."""
+    def __str__(self):
         cards_str = ", ".join(str(card) for card in self.cards)
         return f"[{cards_str}] (value: {self.get_value()})"
-
-    def __repr__(self) -> str:
-        """Detailed representation of the hand."""
-        return f"Hand({len(self.cards)} cards, value={self.get_value()})"
