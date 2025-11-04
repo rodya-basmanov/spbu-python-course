@@ -11,9 +11,7 @@ class Hash_Table:
         """
         self.size = size
         self.manager = Manager()
-        self.buckets: List[List[Tuple[Any, Any]]] = self.manager.list(
-            [self.manager.list() for _ in range(size)]
-        )
+        self.buckets = self.manager.list([self.manager.list() for _ in range(size)])
         self.lock = self.manager.Lock()
 
     def _hash(self, key: Any) -> int:
