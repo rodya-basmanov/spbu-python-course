@@ -1,6 +1,6 @@
-import pytest
+from typing import MutableMapping
 from multiprocessing import Process
-from project.Task6.multi_hash_table import Hash_Table
+from project.Task6.multi_hash_table import HashTable
 
 
 def worker_insert(ht, start, end):
@@ -10,7 +10,7 @@ def worker_insert(ht, start, end):
 
 class TestBasicOperations:
     def test_basic_operations(self):
-        ht = Hash_Table()
+        ht = HashTable()
         ht["key1"] = "value1"
         assert ht["key1"] == "value1"
 
@@ -33,7 +33,7 @@ class TestBasicOperations:
 
 class TestParallelOperations:
     def test_parallel_inserts_no_data_loss(self):
-        ht = Hash_Table(size=128)
+        ht = HashTable(size=128)
 
         processes = []
         num_processes = 4
@@ -55,12 +55,15 @@ class TestParallelOperations:
         for i in range(expected_count):
             assert ht[i] == i * 2
 
+    def test_is_mutable_mapping(self):
+        ht = HashTable()
+        assert isinstance(ht, MutableMapping)
+
     def test_locks_work_correctly(self):
-        ht = Hash_Table()
+        ht = HashTable()
 
         def update_same_key(ht, value):
-            for _ in range(10):
-                ht["shared"] = value
+            ht["shared"] = value
 
         processes = []
         for i in range(3):
@@ -73,6 +76,30 @@ class TestParallelOperations:
 
         assert "shared" in ht
         assert ht["shared"] in range(3)
+
+    def test_parallel_work_demonstration(self):
+        ht = HashTable()
+
+        def parallel_worker(ht, worker_id):
+            for i in range(10):
+                key = f"worker_{worker_id}_key_{i}"
+                ht[key] = worker_id * 100 + i
+
+        processes = []
+        for worker_id in range(3):
+            p = Process(target=parallel_worker, args=(ht, worker_id))
+            processes.append(p)
+            p.start()
+        for p in processes:
+            p.join()
+
+        assert len(ht) == 30
+
+        for worker_id in range(3):
+            for i in range(10):
+                key = f"worker_{worker_id}_key_{i}"
+                assert key in ht
+                assert ht[key] == worker_id * 100 + i
 
 
 def print_recipe():
