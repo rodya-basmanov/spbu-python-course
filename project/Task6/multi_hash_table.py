@@ -1,8 +1,8 @@
-from typing import Any, Iterator, List, Tuple, Optional
+from typing import Any, Iterator, List, MutableMapping, Tuple, Optional
 from multiprocessing import Manager
 
 
-class HashTable:
+class HashTable(MutableMapping):
     def __init__(self, size: int = 64) -> None:
         """
         Initialize hash table with specified number of buckets.
@@ -12,7 +12,7 @@ class HashTable:
         self.size = size
         self.manager = Manager()
         self.buckets = self.manager.list([self.manager.list() for _ in range(size)])
-        self.lock = self.manager.Lock()
+        self.locks = [self.manager.Lock() for _ in range(size)]
 
     def _hash(self, key: Any) -> int:
         """
@@ -100,29 +100,31 @@ class HashTable:
 
     def __len__(self) -> int:
         """Return total number of key-value pairs stored."""
-        with self.lock:
-            total = 0
-            for bucket in self.buckets:
-                total += len(bucket)
-            return total
+        total = 0
+        for idx in range(self.size):
+            with self.locks[idx]:
+                total += len(self.buckets[idx])
+        return total
 
     def __iter__(self) -> Iterator[Any]:
         """Return iterator over all keys in table."""
-        with self.lock:
-            keys = []
-            for bucket in self.buckets:
-                for stored_key, _ in bucket:
-                    keys.append(stored_key)
-            return iter(keys)
+        for idx in range(self.size):
+            lock = self.locks[idx]
+            bucket = self.buckets[idx]
+            with lock:
+                for key, _ in bucket:
+                    yield key
 
     def __repr__(self) -> str:
         """Return string representation of hash table."""
-        with self.lock:
-            entries = []
-            for bucket in self.buckets:
-                for stored_key, stored_value in bucket:
-                    entries.append(f"{stored_key}: {stored_value}")
-            return "HashTable({" + ", ".join(entries) + "})"
+        entries = []
+        for idx in range(self.size):
+            lock = self.locks[idx]
+            bucket = self.buckets[idx]
+            with lock:
+                for key, value in bucket:
+                    entries.append(f"{key}: {value}")
+        return f"HashTable({{{', '.join(entries)}}})"
 
     def keys(self) -> Iterator[Any]:
         """Return iterator over all keys."""
@@ -130,21 +132,21 @@ class HashTable:
 
     def values(self) -> Iterator[Any]:
         """Return iterator over all values."""
-        with self.lock:
-            vals = []
-            for bucket in self.buckets:
-                for _, stored_value in bucket:
-                    vals.append(stored_value)
-            return iter(vals)
+        for idx in range(self.size):
+            lock = self.locks[idx]
+            bucket = self.buckets[idx]
+            with lock:
+                for _, value in bucket:
+                    yield value
 
     def items(self) -> Iterator[Tuple[Any, Any]]:
         """Return iterator over key-value pairs."""
-        with self.lock:
-            pairs = []
-            for bucket in self.buckets:
+        for idx in range(self.size):
+            lock = self.locks[idx]
+            bucket = self.buckets[idx]
+            with lock:
                 for pair in bucket:
-                    pairs.append(pair)
-            return iter(pairs)
+                    yield pair
 
     def get(self, key: Any, default: Any = None) -> Any:
         """
@@ -170,16 +172,19 @@ class HashTable:
         Raises:
             KeyError: When key does not exist
         """
-        with self.lock:
-            if key not in self:
-                raise KeyError(key)
-
-            result = self[key]
-            del self[key]
-            return result
+        idx = self._hash(key)
+        lock = self.locks[idx]
+        bucket = self.buckets[idx]
+        with lock:
+            for i, (k, v) in enumerate(bucket):
+                if k == key:
+                    del bucket[i]
+                    return v
+            raise KeyError(key)
 
     def clear(self) -> None:
         """Remove all key-value pairs from table."""
-        with self.lock:
-            for idx in range(self.size):
+        for idx in range(self.size):
+            lock = self.locks[idx]
+            with lock:
                 self.buckets[idx] = self.manager.list()
