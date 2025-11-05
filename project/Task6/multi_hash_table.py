@@ -2,7 +2,7 @@ from typing import Any, Iterator, List, Tuple, Optional
 from multiprocessing import Manager
 
 
-class Hash_Table:
+class HashTable:
     def __init__(self, size: int = 64) -> None:
         """
         Initialize hash table with specified number of buckets.
@@ -30,18 +30,15 @@ class Hash_Table:
             Key: Key to set
             Value: Value to set
         """
-        with self.lock:
-            bucket_idx = self._hash(key)
-            current_bucket = list(self.buckets[bucket_idx])
+        bucket_idx = self._hash(key)
 
-            for idx, (existing_key, _) in enumerate(current_bucket):
+        with self.locks[bucket_idx]:
+            bucket = self.buckets[bucket_idx]
+            for idx, (existing_key, _) in enumerate(bucket):
                 if existing_key == key:
-                    current_bucket[idx] = (key, value)
-                    self.buckets[bucket_idx] = self.manager.list(current_bucket)
+                    bucket[idx] = (key, value)
                     return
-
-            current_bucket.append((key, value))
-            self.buckets[bucket_idx] = self.manager.list(current_bucket)
+            bucket.append((key, value))
 
     def __getitem__(self, key: Any) -> Any:
         """
@@ -53,31 +50,33 @@ class Hash_Table:
         Raises:
             KeyError: When key is not present in table
         """
-        with self.lock:
-            bucket_idx = self._hash(key)
 
-            for stored_key, stored_value in self.buckets[bucket_idx]:
-                if stored_key == key:
-                    return stored_value
+        bucket_idx = self._hash(key)
 
-            raise KeyError(key)
+        for stored_key, stored_value in self.buckets[bucket_idx]:
+            if stored_key == key:
+                return stored_value
+
+        raise KeyError(key)
 
     def __delitem__(self, key: Any) -> None:
         """
-        Remove key-value pair from table.
+        Remove key-value pair from the hash table.
+
         Args:
             key: Key of item to remove
-        Raises:
-            KeyError: When key does not exist
-        """
-        with self.lock:
-            bucket_idx = self._hash(key)
-            target_bucket = list(self.buckets[bucket_idx])
 
-            for idx, (stored_key, _) in enumerate(target_bucket):
+        Raises:
+            KeyError: If key does not exist
+        """
+        bucket_idx = self._hash(key)
+
+        with self.locks[bucket_idx]:
+            bucket = self.buckets[bucket_idx]
+
+            for idx, (stored_key, _) in enumerate(bucket):
                 if stored_key == key:
-                    target_bucket.pop(idx)
-                    self.buckets[bucket_idx] = self.manager.list(target_bucket)
+                    del bucket[idx]
                     return
 
             raise KeyError(key)
@@ -90,14 +89,14 @@ class Hash_Table:
         Returns:
             True if key is present, False otherwise
         """
-        with self.lock:
-            bucket_idx = self._hash(key)
 
-            for stored_key, _ in self.buckets[bucket_idx]:
-                if stored_key == key:
-                    return True
+        bucket_idx = self._hash(key)
 
-            return False
+        for stored_key, _ in self.buckets[bucket_idx]:
+            if stored_key == key:
+                return True
+
+        return False
 
     def __len__(self) -> int:
         """Return total number of key-value pairs stored."""
