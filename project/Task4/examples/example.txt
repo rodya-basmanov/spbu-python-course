@@ -1,0 +1,39 @@
+BLACKJACK GAME
+
+Players:
+  - Bot 1 (Conservative strategy)
+  - Bot 2 (Aggressive strategy)
+  - Bot 3 (Dealer strategy)
+
+
+Round 1:
+Dealer: Dealer: [10♣, 5♦, A♣, K♠] (value: 26)
+Bot 1: [2♠, 7♦, 4♣] (value: 13)
+Bot 2: [Q♠, 6♠, K♣] (value: 26)
+Bot 3: [7♣, 10♠] (value: 17)
+
+Round 2:
+Dealer: Dealer: [10♦, 4♠, 3♠] (value: 17)
+Bot 1: [6♣, Q♦] (value: 16)
+Bot 2: [4♦, 6♦, 8♠] (value: 18)
+Bot 3: [8♦, J♥] (value: 18)
+
+Round 3:
+Dealer: Dealer: [2♣, 7♥, 2♦, J♣] (value: 21)
+Bot 1: [K♥, 8♣] (value: 18)
+Bot 2: [10♥, 5♠, J♦] (value: 25)
+Bot 3: [5♥, 9♠, 9♥] (value: 23)
+
+Round 4:
+Dealer: Dealer: [3♣, 3♥, 2♥, 6♠, 4♣] (value: 18)
+Bot 1: [4♥, 8♥] (value: 12)
+Bot 2: [J♠, 5♣, 9♦] (value: 24)
+Bot 3: [3♦, A♦, 9♣, K♦] (value: 23)
+
+Round 5:
+Dealer: Dealer: [A♥, 3♠, 6♥] (value: 20)
+Bot 1: [6♦, Q♠] (value: 16)
+Bot 2: [7♠, 3♥, 3♣, J♠] (value: 23)
+Bot 3: [J♣, 3♦, 9♥] (value: 22)
+
+GAME FINISHED
